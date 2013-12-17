@@ -23,7 +23,7 @@
 #include <linux/gpio.h>
 #include <linux/err.h>
 #include <linux/regulator/consumer.h>
-#include <linux/pwm.h>
+#include <linux/qpnp/pwm.h>
 #include <linux/clk.h>
 #include <linux/spinlock_types.h>
 #include <linux/kthread.h>
@@ -511,6 +511,15 @@ void mdss_edp_set_backlight(struct mdss_panel_data *pdata, u32 bl_level)
 	bl_max = edp_drv->panel_data.panel_info.bl_max;
 	if (bl_level > bl_max)
 		bl_level = bl_max;
+
+		ret = pwm_config_us(edp_drv->bl_pwm,
+				bl_level * edp_drv->pwm_period / bl_max,
+				edp_drv->pwm_period);
+		if (ret) {
+			pr_err("%s: pwm_config_us() failed err=%d.\n", __func__,
+					ret);
+			return;
+		}
 
 	duty_level = duty_level_table[bl_level];
 
