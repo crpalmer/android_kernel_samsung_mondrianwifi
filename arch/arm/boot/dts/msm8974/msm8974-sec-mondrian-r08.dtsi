@@ -79,6 +79,22 @@
 		};
     };
 
+	i2c@19 {
+        cell-index = <19>;
+        compatible = "i2c-gpio";
+        gpios = <&msmgpio 51 0 /* sda */
+                 &msmgpio 52 0 /* scl */
+                >;
+		sec-fuelgauge@36 {
+			compatible = "sec-fuelgauge,i2c";
+			reg = <0x36>;
+			fuelgauge,jig_gpio = <&msmgpio 76 0>;
+			fuelgauge,fuel_int = <&pm8941_gpios 26 0x1>;
+			fuelgauge,capacity_calculation_type = <7>;
+			fuelgauge,fuel_alert_soc = <2>;
+		};
+	};
+
 	i2c@22 {
 		cell-index = <22>;
 		compatible = "i2c-gpio";
@@ -321,25 +337,6 @@
 	/* BLSP#8 */
 	/* i2c@f9964000 {
 	}; */
-
-	/* BLSP#9 */
-	i2c@f9965000 {
-		status = "okay";
-		qcom,scl-gpio = <&msmgpio 52 0>;
-		qcom,sda-gpio = <&msmgpio 51 0>;
-
-		sec-fuelgauge@36 {
-			compatible = "sec-fuelgauge,i2c";
-			reg = <0x36>;
-			fuelgauge,fuel_int = <&pm8941_gpios 26 0x1>;
-			fuelgauge,capacity_max = <1000>;
-			fuelgauge,capacity_max_margin = <50>;
-			fuelgauge,capacity_min = <0>;
-			fuelgauge,capacity_calculation_type = <7>;
-			fuelgauge,fuel_alert_soc = <1>;
-			fuelgauge,jig_gpio = <&msmgpio 76 0x00>;
-		};
-	};
 
 	/* BLSP#10 */
 	i2c@f9966000 {

@@ -1,3 +1,5 @@
+CONFIG_KERNEL_LZMA=y
+
 # from msm8974_sec_defconfig
 CONFIG_AUDIT=y
 

@@ -319,17 +319,6 @@ static struct gpiomux_setting gpio_i2c_config = {
 	.pull = GPIOMUX_PULL_NONE,
 };
 
-static struct gpiomux_setting gpio_i2c_config_9 = {
-	.func = GPIOMUX_FUNC_4,
-	/*
-	* Please keep I2C GPIOs drive-strength at minimum (2ma). It is a
-	* workaround for HW issue of glitches caused by rapid GPIO current-
-	* change.
-	*/
-	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_NONE,
-};
-
 static struct gpiomux_setting gpio_i2c_config_4 = {
 	.func = GPIOMUX_FUNC_4,
 	/*
@@ -805,20 +794,6 @@ static struct msm_gpiomux_config msm_blsp_configs[] __initdata = {
 		.gpio      = 30,                /* BLSP6 QUP I2C_CLK */
 		.settings = {
 			[GPIOMUX_SUSPENDED] = &gpio_i2c_config,
-		},
-	},
-	{
-		.gpio      = 51,                /* BLSP9 QUP I2C_DAT */
-		.settings = {
-			[GPIOMUX_ACTIVE] = &gpio_i2c_config_9,
-			[GPIOMUX_SUSPENDED] = &gpio_i2c_config_9,
-		},
-	},
-	{
-		.gpio      = 52,                /* BLSP9 QUP I2C_CLK */
-		.settings = {
-			[GPIOMUX_ACTIVE] = &gpio_i2c_config_9,
-			[GPIOMUX_SUSPENDED] = &gpio_i2c_config_9,
 		},
 	},
 	{
