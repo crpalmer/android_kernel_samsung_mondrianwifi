@@ -21,7 +21,7 @@
 #include <linux/android_alarm.h>
 
 #if defined(CONFIG_MACH_LT03SKT) || defined(CONFIG_MACH_LT03KTT) || \
-	defined(CONFIG_MACH_LT03LGT)
+	defined(CONFIG_MACH_LT03LGT) || defined(CONFIG_MACH_MONDRIAN)
 #define FUELALERT_CHECK_VOLTAGE_FEATURE
 #endif
 
