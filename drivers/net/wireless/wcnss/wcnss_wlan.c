@@ -2153,6 +2153,10 @@ void process_usr_ctrl_cmd(u8 *buf, size_t len)
 		break;
 
 	case WCNSS_USR_WLAN_MAC_ADDR:
+		if (WLAN_MAC_ADDR_SIZE + 2 > len) {
+			pr_err("%s: Invalid MAC address (%d byte message)\n", __func__, len);
+			return;
+		}
 		memcpy(&penv->wlan_nv_macAddr,  &buf[2],
 				sizeof(penv->wlan_nv_macAddr));
 
