@@ -232,6 +232,9 @@
 		/* BLSP#12 */
 	i2c@f9968000 {
 		status = "okay";
+		qcom,scl-gpio = <&msmgpio 88 0>;
+		qcom,sda-gpio = <&msmgpio 87 0>;
+
 		smb358@6A {
 			compatible = "smb358,i2c";
 			reg = <0x6A>;

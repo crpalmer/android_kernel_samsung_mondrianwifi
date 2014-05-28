@@ -685,8 +685,7 @@ void msm8974_bt_init(void);
     defined(CONFIG_BCM4354) || defined(CONFIG_BCM4354_MODULE)
 int brcm_wlan_init(void);
 int brcm_wifi_status_register(
-	void (*callback)(int card_present, void *dev_id),
-	void *dev_id, void *mmc_host);
+			void (*callback)(int card_present, void *dev_id), void *dev_id);
 unsigned int brcm_wifi_status(struct device *dev);
 #endif
 

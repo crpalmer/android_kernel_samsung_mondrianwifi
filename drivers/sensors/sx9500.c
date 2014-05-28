@@ -52,7 +52,7 @@
 #define SX9500_MODE_SLEEP        0
 #define SX9500_MODE_NORMAL       1
 
-#ifdef CONFIG_MACH_MONDRIAN
+#ifdef CONFIG_MACH_MONDRIAN_LTE
 #define MAIN_SENSOR              3
 #define REF_SENSOR               2
 #define CSX_STATUS_REG           SX9500_TCHCMPSTAT_TCHSTAT3_FLAG
@@ -131,7 +131,7 @@ static int sx9500_i2c_write(struct sx9500_p *data, u8 reg_addr, u8 buf)
 	if (ret < 0)
 		pr_err("[SX9500]: %s - i2c write error %d\n", __func__, ret);
 
-	return ret;
+	return 0;
 }
 
 static int sx9500_i2c_read(struct sx9500_p *data, u8 reg_addr, u8 *buf)
@@ -1058,6 +1058,19 @@ static int sx9500_setup_pin(struct sx9500_p *data)
 		return ret;
 	}
 
+	data->irq = gpio_to_irq(data->gpioNirq);
+
+	/* initailize interrupt reporting */
+	ret = request_threaded_irq(data->irq, NULL, sx9500_interrupt_thread,
+			IRQF_TRIGGER_FALLING , "sx9500_irq", data);
+	if (ret < 0) {
+		pr_err("[SX9500]: %s - failed to set request_threaded_irq %d"
+			" as returning (%d)\n", __func__, data->irq, ret);
+		gpio_free(data->gpioNirq);
+		return ret;
+	}
+
+	disable_irq(data->irq);
 	return 0;
 }
 
@@ -1242,34 +1255,15 @@ static int sx9500_probe(struct i2c_client *client,
 	INIT_DELAYED_WORK(&data->irq_work, sx9500_irq_work_func);
 	mutex_init(&data->mode_mutex);
 
-	data->irq = gpio_to_irq(data->gpioNirq);
-
-	/* initailize interrupt reporting */
-	ret = request_threaded_irq(data->irq, NULL, sx9500_interrupt_thread,
-			IRQF_TRIGGER_FALLING , "sx9500_irq", data);
-	if (ret < 0) {
-		pr_err("[SX9500]: %s - failed to set request_threaded_irq %d"
-			" as returning (%d)\n", __func__, data->irq, ret);
-		goto exit_request_threaded_irq;
-	}
-
-	disable_irq(data->irq);
-
 	schedule_delayed_work(&data->init_work, msecs_to_jiffies(300));
 
 	pr_info("[SX9500]: %s - Probe done!\n", __func__);
 
 	return 0;
 
-exit_request_threaded_irq:
-	mutex_destroy(&data->mode_mutex);
-	sensors_unregister(data->factory_device, sensor_attrs);
-	sensors_remove_symlink(&data->input->dev.kobj, data->input->name);
-	wake_lock_destroy(&data->grip_wake_lock);
-	sysfs_remove_group(&data->input->dev.kobj, &sx9500_attribute_group);
-	input_unregister_device(data->input);
 exit_input_init:
 exit_chip_reset:
+	free_irq(data->irq, data);
 	gpio_free(data->gpioNirq);
 exit_setup_pin:
 exit_of_node:
@@ -1310,14 +1304,12 @@ static int sx9500_suspend(struct device *dev)
 
 	if (atomic_read(&data->enable) == ON)
 		pr_info("[SX9500]: %s\n", __func__);
-
 	return 0;
 }
 
 static int sx9500_resume(struct device *dev)
 {
 	struct sx9500_p *data = dev_get_drvdata(dev);
-
 	if (atomic_read(&data->enable) == ON)
 		pr_info("[SX9500]: %s\n", __func__);
 

@@ -32,25 +32,14 @@
 #include <asm/system_info.h>
 
 #if defined(CONFIG_SEC_LT03_PROJECT)
-#define USE_MENU_TOUCHKEY	/* OS upgrade model: menu key */
-#define MXT_FIRMWARE_NAME	"mXT1664S_n.fw"
-
-#elif defined(CONFIG_SEC_PICASSO_PROJECT)
-#define MXT_FIRMWARE_NAME	"mXT1664S_n.fw"
-
-#elif defined(CONFIG_SEC_VIENNA_PROJECT)
-#define MXT_FIRMWARE_NAME	"mXT1664S_v.fw"
-
-#elif defined(CONFIG_SEC_V2_PROJECT)
-#define MXT_FIRMWARE_NAME	"mXT1664S_v2.fw"
-
-#else
-#undef USE_MENU_TOUCHKEY	/* default: recent key (since KK) */
-#define MXT_FIRMWARE_NAME	NULL
-
+/* default: recent key (since KK)
+ * OS upgrade model: menu key */
+#define USE_MENU_TOUCHKEY
 #endif
 
 #define MXT_DEFAULT_FIRMWARE_NAME	"MXTS.fw"
+#define MXT_V_PROJECT_FIRMWARE_NAME	"mXT1664S_v.fw"
+#define MXT_N_PROJECT_FIRMWARE_NAME	"mXT1664S_n.fw"
 #define MXT_FIRMWARE_INKERNEL_PATH	"tsp_atmel/"
 #define MXT_MAX_FW_PATH				30
 #define MXT_FIRMWARE_UPDATE_TYPE	true

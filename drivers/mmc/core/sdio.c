@@ -1335,8 +1335,10 @@ err:
 }
 EXPORT_SYMBOL(sdio_reset_comm);
 
-void sdio_ctrl_power(struct mmc_host *host, bool onoff)
+void sdio_ctrl_power(struct mmc_card *card, bool onoff)
 {
+		struct mmc_host *host = card->host;
+
 		mmc_claim_host(host);
 		if (onoff)
 			mmc_power_up(host);
