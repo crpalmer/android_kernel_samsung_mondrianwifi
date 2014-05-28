@@ -183,8 +183,7 @@ static int mxt_parse_dt(struct device *dev,
 	pdata->max_x = coords[2];
 	pdata->max_y = coords[3];
 	pdata->boot_address = MXT_BOOT_ADDRESS;
-	pdata->firmware_name = MXT_FIRMWARE_NAME;
-	
+
 	pdata->num_touchkey = ARRAY_SIZE(mxt_touchkey_data);
 	pdata->touchkey = mxt_touchkey_data;
 
@@ -1159,11 +1158,7 @@ static void mxt_release_all_keys(struct mxt_data *data)
 							"%s: [TSP_KEY] Ignore menu R! by back key\n",
 								 __func__);
 				} else {
-#ifdef USE_MENU_TOUCHKEY
-					input_report_key(data->input_dev, KEY_MENU, KEY_RELEASE);
-#else
 					input_report_key(data->input_dev, KEY_RECENT, KEY_RELEASE);
-#endif
 						dev_info(&data->client->dev,
 							"%s: [TSP_KEY] menu R!\n", __func__);
 #if MXT_TKEY_BOOSTER
@@ -1262,12 +1257,7 @@ static void mxt_treat_T15_object(struct mxt_data *data,
 						"%s: [TSP_KEY] Ignore menu %s by back key\n",
 								 __func__, key_state != 0 ? "P" : "R");
 				} else {
-					
-#ifdef USE_MENU_TOUCHKEY
-					input_report_key(data->input_dev, KEY_MENU, key_state != 0 ? KEY_PRESS : KEY_RELEASE);
-#else
 					input_report_key(data->input_dev, KEY_RECENT, key_state != 0 ? KEY_PRESS : KEY_RELEASE);
-#endif					
 					dev_info(&data->client->dev, 
 						"%s: [TSP_KEY] menu %s\n",
 								__func__, key_state != 0 ? "P" : "R");
@@ -2630,7 +2620,11 @@ out:
 static int __devinit mxt_touch_init(struct mxt_data *data, bool nowait)
 {
 	struct i2c_client *client = data->client;
-	const char *firmware_name = data->pdata->firmware_name;
+#if defined(CONFIG_SEC_LT03_PROJECT) || defined(CONFIG_SEC_PICASSO_PROJECT)
+	const char *firmware_name = data->pdata->firmware_name ?: MXT_N_PROJECT_FIRMWARE_NAME;
+#else
+	const char *firmware_name = data->pdata->firmware_name ?: MXT_V_PROJECT_FIRMWARE_NAME;
+#endif
 	int ret = 0;
 
 #if TSP_INFORM_CHARGER
@@ -2644,12 +2638,6 @@ static int __devinit mxt_touch_init(struct mxt_data *data, bool nowait)
 		inform_charger_init(data);
 	}
 #endif
-
-	if (firmware_name == NULL) {
-		dev_info(&client->dev, "%s: firmware name is NULL!, return\n",
-			__func__);
-		return 0;
-	}
 
 	if (nowait) {
 		const struct firmware *fw;

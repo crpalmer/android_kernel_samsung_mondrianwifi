@@ -197,30 +197,6 @@ static void smb358_read_regs(struct i2c_client *client, char *str)
 	}
 }
 
-static int smb358_get_aicl_current(
-			u8 aicl_current)
-{
-	int data;
-
-	if (aicl_current <= 0x10)
-		data = 300;
-	else if (aicl_current <= 0x11)
-		data = 500;
-	else if (aicl_current <= 0x12)
-		data = 700;
-	else if (aicl_current <= 0x13)
-		data = 1000;
-	else if (aicl_current <= 0x14)
-		data = 1200;
-	else if (aicl_current <= 0x15)
-		data = 1300;
-	else if (aicl_current <= 0x16)
-		data = 1800;
-	else
-		data = 2000;
-
-	return data;
-}
 
 static int smb358_get_charging_status(struct i2c_client *client)
 {
@@ -1198,7 +1174,7 @@ bool smb358_hal_chg_set_property(struct i2c_client *client,
 			smb358_charger_function_control(client);
 			smb358_charger_otg_control(client);
 		}
-		/* smb358_test_read(client); */
+		/*smb358_test_read(client);*/
 		break;
 	case POWER_SUPPLY_PROP_CURRENT_MAX:	/* input current limit set */
 	/* calculated input current limit value */
@@ -1312,17 +1288,9 @@ static int smb358_chg_get_property(struct power_supply *psy,
 {
 	struct sec_charger_info *charger =
 		container_of(psy, struct sec_charger_info, psy_chg);
-	u8 data = 0;
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_CURRENT_MAX:	/* input current limit set */
-		smb358_i2c_read(charger->client, SMB358_STATUS_E, &data);
-		if (data & 0x10) {
-			int aicl_result = smb358_get_aicl_current(data);
-			dev_info(&charger->client->dev,
-				"%s : AICL completed (%dmA)\n", __func__, aicl_result);
-			charger->charging_current_max = aicl_result;
-		}
 		val->intval = charger->charging_current_max;
 		break;
 

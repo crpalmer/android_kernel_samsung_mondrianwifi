@@ -1061,7 +1061,7 @@ int mdss_edp_prepare_aux_clocks(struct mdss_edp_drv_pdata *edp_drv)
 	ret = clk_prepare(edp_drv->aux_clk);
 	if (ret) {
 		pr_err("%s: Failed to prepare aux clk\n", __func__);
-		goto c1;
+		goto c2;
 	}
 
 	/* need mdss clock to receive irq */
