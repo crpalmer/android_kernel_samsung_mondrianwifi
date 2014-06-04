@@ -5093,16 +5093,6 @@ static VOS_STATUS hdd_update_config_from_nv(hdd_context_t* pHddCtx)
    v_MACADDR_t macFromNV[VOS_MAX_CONCURRENCY_PERSONA];
    v_U8_t      macLoop;
 
-   /*The driver may have an overridden macaddress, give it priority */
-   if(wcnss_get_wlan_mac_address(&macFromNV[0].bytes[0]) == 0 &&
-      ! vos_is_macaddr_zero(&macFromNV[0]))
-   {
-      vos_mem_copy((v_U8_t *)&pHddCtx->cfg_ini->intfMacAddr[0].bytes[0],
-		   (v_U8_t *)&macFromNV[0].bytes[0],
-                   VOS_MAC_ADDR_SIZE);
-      return VOS_STATUS_SUCCESS;
-   }
-
    /*If the NV is valid then get the macaddress from nv else get it from qcom_cfg.ini*/
    status = vos_nv_getValidity(VNV_FIELD_IMAGE, &itemIsValid);
    if(status != VOS_STATUS_SUCCESS)
