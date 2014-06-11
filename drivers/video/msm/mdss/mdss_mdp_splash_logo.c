@@ -233,6 +233,7 @@ int mdss_mdp_splash_cleanup(struct msm_fb_data_type *mfd,
 		mdss_mdp_handoff_cleanup_pipes(mfd, MDSS_MDP_PIPE_TYPE_RGB);
 		mdss_mdp_handoff_cleanup_pipes(mfd, MDSS_MDP_PIPE_TYPE_VIG);
 		mdss_mdp_handoff_cleanup_pipes(mfd, MDSS_MDP_PIPE_TYPE_DMA);
+#ifdef CONFIG_MACH_MONDRIAN
 	} else if (use_borderfill) {
 		/* crpalmer: This addition is a hack that comes from the Samsung
 		 * stock kernel.  I couldn't figure out what they were doing with
@@ -244,6 +245,7 @@ int mdss_mdp_splash_cleanup(struct msm_fb_data_type *mfd,
 		mdss_mdp_handoff_cleanup_pipes(mfd, MDSS_MDP_PIPE_TYPE_RGB);
 		mdss_mdp_handoff_cleanup_pipes(mfd, MDSS_MDP_PIPE_TYPE_VIG);
 		mdss_mdp_handoff_cleanup_pipes(mfd, MDSS_MDP_PIPE_TYPE_DMA);
+#endif
 	}
 
 	mdss_mdp_ctl_splash_finish(ctl, mdp5_data->handoff);
