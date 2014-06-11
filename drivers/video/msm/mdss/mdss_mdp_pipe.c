@@ -304,6 +304,8 @@ int mdss_mdp_smp_reserve(struct mdss_mdp_pipe *pipe)
 		nlines = pipe->bwc_mode ? 1 : 2;
 
 	mutex_lock(&mdss_mdp_smp_lock);
+
+#if !defined(CONFIG_FB_MSM_EDP_SAMSUNG)
 	if (pipe->src_fmt->is_yuv || (pipe->flags & MDP_BACKEND_COMPOSITION)) {
 		for (i = (MAX_PLANES - 1); i >= ps.num_planes; i--) {
 			if (bitmap_weight(pipe->smp_map[i].allocated, SMP_MB_CNT)) {
@@ -314,6 +316,7 @@ int mdss_mdp_smp_reserve(struct mdss_mdp_pipe *pipe)
 			}
 		}
 	}
+#endif
 
 	for (i = 0; i < ps.num_planes; i++) {
 		if (rot_mode) {
@@ -1181,7 +1184,7 @@ int mdss_mdp_pipe_queue_data(struct mdss_mdp_pipe *pipe,
 			 (pipe->mixer->type == MDSS_MDP_MIXER_TYPE_WRITEBACK)
 			 && (ctl->mdata->mixer_switched)) ||
 			 ctl->roi_changed;
-	if (src_data == NULL || (pipe->flags & MDP_SOLID_FILL)) {
+	if (src_data == NULL || !pipe->has_buf) {
 		pipe->params_changed = 0;
 		mdss_mdp_pipe_solidfill_setup(pipe);
 		goto update_nobuf;

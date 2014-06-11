@@ -33,6 +33,8 @@
 #include <mach/dma.h>
 
 #include "mdss.h"
+#include "mdss_panel.h"
+#include "mdss_mdp.h"
 #include "mdss_edp.h"
 #include "mdss_debug.h"
 #include <linux/qpnp/pin.h>
@@ -890,6 +892,12 @@ int mdss_edp_on(struct mdss_panel_data *pdata)
 
 	pr_info("%s:+, cont_splash=%d\n", __func__, edp_drv->cont_splash);
 
+	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON, false);
+
+#if defined(CONFIG_FB_MSM_EDP_SAMSUNG)
+	mutex_lock(&edp_power_state_chagne);
+	INIT_COMPLETION(edp_power_sync);
+#endif
 	if (!edp_drv->cont_splash) { /* vote for clocks */
 		qpnp_pin_config(edp_drv->gpio_panel_pwm, &LCD_PWM_PM_GPIO_WAKE);
 		qpnp_pin_config(edp_drv->gpio_panel_en, &LCD_EN_PM_GPIO_WAKE);
@@ -1010,6 +1018,8 @@ int mdss_edp_off(struct mdss_panel_data *pdata)
 
 	mdss_edp_clk_disable(edp_drv);
 	mdss_edp_unprepare_clocks(edp_drv);
+
+	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
 
 	mdss_edp_aux_ctrl(edp_drv, 0);
 
@@ -1173,15 +1183,10 @@ static int __devexit mdss_edp_remove(struct platform_device *pdev)
 static int mdss_edp_device_register(struct mdss_edp_drv_pdata *edp_drv)
 {
 	int ret;
-	u32 tmp;
 
 	mdss_edp_edid2pinfo(edp_drv);
 	edp_drv->panel_data.panel_info.bl_min = 1;
 	edp_drv->panel_data.panel_info.bl_max = 255;
-	ret = of_property_read_u32(edp_drv->pdev->dev.of_node,
-		"qcom,mdss-brightness-max-level", &tmp);
-	edp_drv->panel_data.panel_info.brightness_max =
-		(!ret ? tmp : MDSS_MAX_BL_BRIGHTNESS);
 
 	edp_drv->panel_data.event_handler = mdss_edp_event_handler;
 	edp_drv->panel_data.set_backlight = mdss_edp_set_backlight;
@@ -1688,6 +1693,10 @@ static int __devinit mdss_edp_probe(struct platform_device *pdev)
 
 	pr_info("%s:cont_splash=%d\n", __func__, edp_drv->cont_splash);
 
+	/* need mdss clock to receive irq */
+	if (!edp_drv->cont_splash)
+		mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON, false);
+
 	/* only need aux and ahb clock for aux channel */
 	mdss_edp_prepare_aux_clocks(edp_drv);
 	mdss_edp_aux_clk_enable(edp_drv);
@@ -1721,6 +1730,9 @@ static int __devinit mdss_edp_probe(struct platform_device *pdev)
 
 	mdss_edp_aux_clk_disable(edp_drv);
 	mdss_edp_unprepare_aux_clocks(edp_drv);
+
+	if (!edp_drv->cont_splash)
+		mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
 
 	if (edp_drv->cont_splash) { /* vote for clocks */
 		mdss_edp_regulator_on(edp_drv);
@@ -1765,11 +1777,11 @@ probe_err:
 static int __init edp_current_boot_mode(char *mode)
 {
 	/*
-	*	1, 2 is recovery booting
+	*	1 is recovery booting
 	*	0 is normal booting
 	*/
 
-        if ((strncmp(mode, "1", 1) == 0)||(strncmp(mode, "2", 1) == 0))
+	if (strncmp(mode, "1", 1) == 0)
 		recovery_mode = 1;
 	else
 		recovery_mode = 0;

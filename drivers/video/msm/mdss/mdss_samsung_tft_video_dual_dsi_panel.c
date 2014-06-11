@@ -39,6 +39,12 @@ static struct mipi_samsung_driver_data msd;
 static struct mdss_dsi_ctrl_pdata *left_back_up_data;
 static int bl_backup;
 
+#ifdef CONFIG_MACH_MONDRIAN
+#define DSI_CTRL_MASTER_ID DSI_CTRL_1
+#else
+#define DSI_CTRL_MASTER_ID DSI_CTRL_0
+#endif
+
 static int panel_power_state;
 static char board_rev;
 static int lcd_attached = 1;
@@ -148,7 +154,13 @@ static void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
 	cmdreq.rlen = 0;
 	cmdreq.cb = NULL;
 
+#ifdef CONFIG_MACH_MONDRIAN
 	mdss_dsi_cmdlist_put(left_back_up_data, &cmdreq);
+#else
+	mdss_dsi_cmdlist_put(ctrl, &cmdreq);
+	if(ctrl->ndx == DSI_CTRL_0)
+		mdss_dsi_cmdlist_put(left_back_up_data, &cmdreq);
+#endif
 }
 
 static char led_pwm1[2] = {0x51, 0x0};	/* DTYPE_DCS_WRITE1 */
@@ -289,14 +301,16 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 
 
 
-	if (ctrl->ndx == DSI_CTRL_1) {
+	if (ctrl->ndx == DSI_CTRL_MASTER_ID) {
 		if (ctrl->on_cmds.cmd_cnt) {
 			mdss_dsi_panel_cmds_send(ctrl, &ctrl->on_cmds);
 		}
 		panel_power_state = 1;
 
+#ifdef CONFIG_MACH_MONDRIAN
 		if(bl_backup)
 			mdss_dsi_panel_bl_ctrl(pdata, bl_backup);
+#endif
 
 		pwm_backlight_enable();
 
@@ -343,11 +357,10 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 
 	if (ctrl->ndx == DSI_CTRL_1) {
 		pwm_backlight_disable();
-
-		if (ctrl->off_cmds.cmd_cnt)
-			mdss_dsi_panel_cmds_send(ctrl, &ctrl->off_cmds);
 	}
 
+	if (ctrl->off_cmds.cmd_cnt)
+		mdss_dsi_panel_cmds_send(ctrl, &ctrl->off_cmds);
 
 	pr_info("%s: ctrl ndx=%d -- \n", __func__, ctrl->ndx);
 	return 0;
