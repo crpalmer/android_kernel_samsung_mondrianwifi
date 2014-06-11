@@ -27,6 +27,7 @@
 #include <linux/clk.h>
 #include <linux/spinlock_types.h>
 #include <linux/kthread.h>
+#include <linux/qpnp/pwm.h>
 #include <asm/system.h>
 #include <asm/mach-types.h>
 #include <mach/hardware.h>
@@ -537,9 +538,9 @@ void mdss_edp_set_backlight(struct mdss_panel_data *pdata, u32 bl_level)
 	do_div(llpwm_period, ll_pwm_resolution);
 	duty_period = (llpwm_period >> BIT_SHIFT); 
 
-	ret = pwm_config(edp_drv->bl_pwm, duty_period, edp_drv->pwm_period);
+	ret = pwm_config_us(edp_drv->bl_pwm, duty_period, edp_drv->pwm_period);
 	if (ret) {
-		pr_err("%s: pwm_config() failed err=%d.\n", __func__, ret);
+		pr_err("%s: pwm_config_us() failed err=%d.\n", __func__, ret);
 		return;
 	}
 
