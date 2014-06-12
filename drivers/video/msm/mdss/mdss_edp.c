@@ -526,10 +526,12 @@ void mdss_edp_set_backlight(struct mdss_panel_data *pdata, u32 bl_level)
 
 	duty_level = duty_level_table[bl_level];
 
+#if 0
 	if (edp_drv->duty_level == duty_level) {
 		pr_err("%s : same duty level..(%d) do not pwm_config..\n", __func__, duty_level);
 		return;
 	}
+#endif
 
 	llpwm_period = edp_drv->pwm_period;
 	llpwm_period <<=  BIT_SHIFT;
