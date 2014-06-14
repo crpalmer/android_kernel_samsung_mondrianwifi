@@ -12,6 +12,15 @@
 /include/ "msm8974-lt03-leds.dtsi"
 /include/ "msm8974-camera-sensor-lt03-r00.dtsi"
 /include/ "msm8974-sii8240_mhl-picasso.dtsi"
+
+/ {
+	memory {
+		fb_mem: fb_region {
+			reg = <0 0x1f40000>;
+		};
+	};
+};
+
 &soc {
 	serial@f991e000 {
 		status = "ok";
