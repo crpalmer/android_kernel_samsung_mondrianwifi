@@ -58,9 +58,7 @@
 struct mdss_data_type *mdss_res;
 static int mdp_clk_cnt;
 
-#if defined (CONFIG_FB_MSM_MDSS_DSI_DBG)
 void xlog(const char *name, u32 data0, u32 data1, u32 data2, u32 data3, u32 data4, u32 data5);
-#endif
 
 static int mdss_fb_mem_get_iommu_domain(void)
 {
@@ -740,9 +738,7 @@ void mdss_mdp_clk_ctrl(int enable, int isr)
 		}
 	}
 
-#if defined (CONFIG_FB_MSM_MDSS_DSI_DBG)
 	xlog(__func__, mdp_clk_cnt, changed, enable, 0, 0, 0);
-#endif
 
 	pr_debug("%s: clk_cnt=%d changed=%d enable=%d\n",
 			__func__, mdp_clk_cnt, changed, enable);
@@ -873,9 +869,7 @@ int mdss_iommu_attach(struct mdss_data_type *mdata)
 	struct mdss_iommu_map_type *iomap;
 	int i, rc = 0;
 
-#if defined (CONFIG_FB_MSM_MDSS_DSI_DBG)
 	xlog(__func__, mdata->iommu_attached, 0, 0, 0, 0, 0); 
-#endif
 	mutex_lock(&mdp_iommu_lock);
 	if (mdata->iommu_attached) {
 		pr_debug("mdp iommu already attached\n");
@@ -916,9 +910,7 @@ int mdss_iommu_dettach(struct mdss_data_type *mdata)
 	struct mdss_iommu_map_type *iomap;
 	int i;
 
-#if defined (CONFIG_FB_MSM_MDSS_DSI_DBG)
 	xlog(__func__, mdata->iommu_attached, 0, 0, 0, 0, 0); 
-#endif
 	mutex_lock(&mdp_iommu_lock);
 	if (!mdata->iommu_attached) {
 		pr_debug("mdp iommu already dettached\n");
