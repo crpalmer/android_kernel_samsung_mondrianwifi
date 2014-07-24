@@ -556,7 +556,12 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	mdss_dsi_host_init(mipi, pdata);
 	/* LP11 */
 	tmp = MIPI_INP((ctrl_pdata->ctrl_base) + 0xac);
+#ifdef CONFIG_MACH_MONDRIAN
 	MIPI_OUTP((ctrl_pdata->ctrl_base) + 0xac, 0x1F << 16);
+#else
+	tmp &= ~(1<<28);
+	MIPI_OUTP((ctrl_pdata->ctrl_base) + 0xac, tmp);
+#endif
 	wmb();
 	msleep(20);
 	/* LP11 */

@@ -5,7 +5,6 @@
 #include <linux/err.h>
 #include <linux/skbuff.h>
 #include <linux/wlan_plat.h>
-#include <linux/mmc/host.h>
 #include <mach/gpio.h>
 #include <mach/board.h>
 #if defined(CONFIG_SPARSE_IRQ)
@@ -163,8 +162,7 @@ static int brcm_init_wlan_mem(void)
 #define GPIO_WL_REG_ON 308
 #elif defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_VIENNA_PROJECT) || defined(CONFIG_SEC_LT03_PROJECT) ||\
       defined(CONFIG_SEC_PICASSO_PROJECT) || defined(CONFIG_SEC_V2_PROJECT) || defined(CONFIG_SEC_JS_PROJECT) ||\
-      defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_MONTBLANC_PROJECT) || defined(CONFIG_SEC_KACTIVE_PROJECT) ||\
-      defined(CONFIG_SEC_FRESCO_PROJECT)
+      defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_MONTBLANC_PROJECT) || defined(CONFIG_SEC_KACTIVE_PROJECT)
 #define GPIO_WL_REG_ON 53
 #elif defined(CONFIG_MACH_MELIUSCASKT) || defined(CONFIG_MACH_MELIUSCAKTT) || defined(CONFIG_MACH_MELIUSCALGT)
 #define GPIO_WL_REG_ON 100
@@ -191,12 +189,6 @@ static unsigned config_gpio_wl_reg_on[] = {
 	GPIO_CFG(GPIO_WL_REG_ON, 0, GPIO_CFG_OUTPUT,
 		GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA) };
 #endif /* not defined (CONFIG_SEC_K_PROJECT && CONFIG_SEC_KS01_PROJECT) && CONFIG_SEC_KACTIVE_PROJECT*/
-
-static int brcm_wifi_cd; /* WIFI virtual 'card detect' status */
-static void (*wifi_status_cb)(int card_present, void *dev_id);
-static void *wifi_status_cb_devid;
-static void *wifi_mmc_host;
-extern void sdio_ctrl_power(struct mmc_host *card, bool onoff);
 
 static unsigned get_gpio_wl_host_wake(void)
 {
@@ -269,9 +261,6 @@ static int brcm_wlan_power(int onoff)
 	printk(KERN_INFO"------------------------------------------------");
 	printk(KERN_INFO"------------------------------------------------\n");
 	printk(KERN_INFO"%s Enter: power %s\n", __func__, onoff ? "on" : "off");
-
-	/* Power on/off SDIO host */
-	sdio_ctrl_power((struct mmc_host *)wifi_mmc_host, onoff);
 
 	if (onoff) {
 		/*
@@ -347,15 +336,19 @@ static int brcm_wlan_reset(int onoff)
 	return 0;
 }
 
+
+static int brcm_wifi_cd; /* WIFI virtual 'card detect' status */
+static void (*wifi_status_cb)(int card_present, void *dev_id);
+static void *wifi_status_cb_devid;
+
 int brcm_wifi_status_register(
-	void (*callback)(int card_present, void *dev_id),
-	void *dev_id, void *mmc_host)
+		void (*callback)(int card_present, void *dev_id),
+		void *dev_id)
 {
 	if (wifi_status_cb)
 		return -EAGAIN;
 	wifi_status_cb = callback;
 	wifi_status_cb_devid = dev_id;
-	wifi_mmc_host = mmc_host;
 	printk(KERN_INFO "%s: callback is %p, devid is %p\n",
 		__func__, wifi_status_cb, dev_id);
 	return 0;

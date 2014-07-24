@@ -59,6 +59,9 @@ static void IRQHandlerF2(struct sdio_func *func);
 #endif /* !defined(OOB_INTR_ONLY) */
 static int sdioh_sdmmc_get_cisaddr(sdioh_info_t *sd, uint32 regaddr);
 extern int sdio_reset_comm(struct mmc_card *card);
+#if defined(CUSTOMER_HW4) && defined(CONFIG_ARCH_MSM8974)
+extern void sdio_ctrl_power(struct mmc_card *card, bool onoff);
+#endif /* CUSTOMER_HW4 && CONFIG_ARCH_MSM8974 */
 
 extern PBCMSDH_SDMMC_INSTANCE gInstance;
 
@@ -1536,12 +1539,18 @@ sdioh_start(sdioh_info_t *si, int stage)
 			and enable the fucntion 1 for in preparation for
 			downloading the code
 		*/
+#if defined(CUSTOMER_HW4) && defined(CONFIG_ARCH_MSM8974)
+		sdio_ctrl_power(gInstance->func[0]->card, TRUE);
+#endif /* CUSTOMER_HW4 && CONFIG_ARCH_MSM8974 */
 		/* sdio_reset_comm() - has been fixed in latest kernel/msm.git for Linux
 		   2.6.27. The implementation prior to that is buggy, and needs broadcom's
 		   patch for it
 		*/
 		if ((ret = sdio_reset_comm(gInstance->func[0]->card))) {
 			sd_err(("%s Failed, error = %d\n", __FUNCTION__, ret));
+#if defined(CUSTOMER_HW4) && defined(CONFIG_ARCH_MSM8974)
+			sdio_ctrl_power(gInstance->func[0]->card, FALSE);
+#endif /* CUSTOMER_HW4 && CONFIG_ARCH_MSM8974 */
 			return ret;
 		}
 		else {
@@ -1625,6 +1634,9 @@ sdioh_stop(sdioh_info_t *si)
 #endif
 		bcmsdh_oob_intr_set(FALSE);
 #endif /* !defined(OOB_INTR_ONLY) */
+#if defined(CUSTOMER_HW4) && defined(CONFIG_ARCH_MSM8974)
+		sdio_ctrl_power(gInstance->func[0]->card, FALSE);
+#endif /* CUSTOMER_HW4 && CONFIG_ARCH_MSM8974 */
 	}
 	else
 		sd_err(("%s Failed\n", __FUNCTION__));

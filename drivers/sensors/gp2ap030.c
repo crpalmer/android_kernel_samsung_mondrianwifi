@@ -90,7 +90,10 @@ struct gp2a_data {
 
 	int irq;
 	int gpio;
+#ifndef CONFIG_SEC_BERLUTI_PROJECT
 	int vled_gpio;
+#endif
+	int con_gpio;
 
 	int offset_value;
 	int cal_result;
@@ -111,6 +114,7 @@ struct gp2a_data {
 
 /* initial value for sensor register */
 #ifdef CONFIG_SENSORS_GP2A030A_PROX
+extern unsigned int system_rev;
 #define COL 8
 static u8 gp2a_reg[COL][2] = {
 	/*  {Regster, Value} */
@@ -671,7 +675,9 @@ static int gp2a_prox_onoff(u8 onoff, struct gp2a_data  *data)
 		turn on light sensor and proximity sensor */
 	if (onoff) {
 		int i;
+#ifndef CONFIG_SEC_BERLUTI_PROJECT
 		gpio_set_value(data->vled_gpio, 1);
+#endif
 
 		for (i = 0; i < COL; i++) {
 			int err = gp2a_i2c_write(data, gp2a_reg[i][0],
@@ -696,7 +702,9 @@ static int gp2a_prox_onoff(u8 onoff, struct gp2a_data  *data)
 			value = 0x00;	/*shutdown mode */
 			gp2a_i2c_write(data, (u8) (COMMAND1), &value);
 		}
+#ifndef CONFIG_SEC_BERLUTI_PROJECT
 		gpio_set_value(data->vled_gpio, 0);
+#endif
 	}
 
 	return 0;
@@ -769,9 +777,9 @@ gp2a_prox_enable_store(struct device *dev, struct device_attribute *attr,
 	} else {
 
 		if (data->prox_enabled == SENSOR_ENABLE) {
-			gp2a_prox_onoff(0, data);
 			disable_irq(data->irq);
 			disable_irq_wake(data->irq);
+			gp2a_prox_onoff(0, data);
 			data->prox_enabled = SENSOR_DISABLE;
 		} else {
 			pr_err("%s already disabled\n", __func__);
@@ -1356,10 +1364,23 @@ static void gp2a_work_func_prox(struct work_struct *work)
 	if (ret < 0)
 		pr_info("%s, read data error\n", __func__);
 
-	pr_info("%s, detection=%d, mode=%d\n", __func__,
-		data->proximity_detection, data->lightsensor_mode);
+	pr_info("%s, detection=%d, mode=%d, rev=%d\n", __func__,
+		data->proximity_detection, data->lightsensor_mode, system_rev);
 
-	input_report_abs(data->prox_input_dev, ABS_DISTANCE, data->proximity_detection);
+	if (system_rev < 12) {
+		input_report_abs(data->prox_input_dev, ABS_DISTANCE, data->proximity_detection);
+	} else {
+		if (!gpio_get_value(data->con_gpio)) {
+			input_report_abs(data->prox_input_dev, ABS_DISTANCE, data->proximity_detection);
+		} else {
+			if (!data->proximity_detection) {
+				pr_err("%s, Conducntion is Connect\n", __func__);
+				input_report_abs(data->prox_input_dev, ABS_DISTANCE, 1);
+			} else {
+				input_report_abs(data->prox_input_dev, ABS_DISTANCE, data->proximity_detection);
+			}
+		}
+	}
 	input_sync(data->prox_input_dev);
 }
 
@@ -1380,6 +1401,7 @@ static int gp2a_setup_irq(struct gp2a_data *data)
 
 	pr_err("%s, start\n", __func__);
 
+#ifndef CONFIG_SEC_BERLUTI_PROJECT
 	rc = gpio_request(data->vled_gpio, "gpio_vled_en");
 	if (unlikely(rc < 0)) {
 		pr_err("%s: gpio %d request failed (%d)\n",
@@ -1393,12 +1415,17 @@ static int gp2a_setup_irq(struct gp2a_data *data)
 				__func__, data->vled_gpio, rc);
 		goto err_gpio_direction_output;
 	}
+#endif
 
 	rc = gpio_request(data->gpio, "gpio_gp2a_prox_out");
 	if (unlikely(rc < 0)) {
 		pr_err("%s: gpio %d request failed (%d)\n",
 				__func__, data->gpio, rc);
+#ifndef CONFIG_SEC_BERLUTI_PROJECT
+		goto err_gpio_direction_output;
+#else
 		goto done;
+#endif
 	}
 
 	rc = gpio_direction_input(data->gpio);
@@ -1428,8 +1455,10 @@ static int gp2a_setup_irq(struct gp2a_data *data)
 err_request_irq:
 err_gpio_direction_input:
 	gpio_free(data->gpio);
+#ifndef CONFIG_SEC_BERLUTI_PROJECT
 err_gpio_direction_output:
 	gpio_free(data->vled_gpio);
+#endif
 done:
 	return rc;
 }
@@ -1438,6 +1467,7 @@ static int gp2a_parse_dt(struct gp2a_data *data, struct device *dev)
 {
 	struct device_node *this_node= dev->of_node;
 	enum of_gpio_flags flags;
+	int rc;
 
 	if (this_node == NULL)
 		return -ENODEV;
@@ -1449,14 +1479,41 @@ static int gp2a_parse_dt(struct gp2a_data *data, struct device *dev)
 		return -ENODEV;
 	}
 
+#ifndef CONFIG_SEC_BERLUTI_PROJECT
 	data->vled_gpio = of_get_named_gpio_flags(this_node,
 						"gp2a030a,vled_gpio", 0, &flags);
 	if (data->vled_gpio < 0) {
 		pr_err("%s : get irq_gpio(%d) error\n", __func__, data->vled_gpio);
 		return -ENODEV;
 	}
+#endif
+	if (system_rev >= 12) {
+		data->con_gpio = of_get_named_gpio_flags(this_node,
+						"gp2a030a,con_gpio", 0, &flags);
+		if (data->con_gpio < 0) {
+			pr_err("%s : get con_gpio(%d) error\n", __func__, data->con_gpio);
+			return -ENODEV;
+		}
 
+		rc = gpio_request(data->con_gpio, "con_gpio");
+		if (unlikely(rc < 0)) {
+			pr_err("%s: gpio %d request failed (%d)\n",
+					__func__, data->con_gpio, rc);
+			goto done;
+		}
+
+		rc = gpio_direction_input(data->con_gpio);
+		if (unlikely(rc < 0)) {
+			pr_err("%s: failed to set gpio %d as input (%d)\n",
+					__func__, data->con_gpio, rc);
+			goto err_con_gpio_direction_input;
+		}
+	}
 	return 0;
+err_con_gpio_direction_input:
+	gpio_free(data->con_gpio);
+done:
+	return rc;
 }
 #endif
 
@@ -1527,6 +1584,13 @@ static int gp2a_probe(struct i2c_client *client,
 		goto input_register_device_err;
 	}
 
+#if defined(CONFIG_SEC_BERLUTI_PROJECT)
+	err = sensors_create_symlink(&data->light_input_dev->dev.kobj, data->light_input_dev->name);
+	if (err < 0) {
+		pr_err("%s sensors_create_symlink light error\n", __func__);
+		goto sensors_create_symlink_err;
+	}
+#endif
 	err = sysfs_create_group(&data->light_input_dev->dev.kobj,
 				&gp2a_light_attribute_group);
 	if (err) {
@@ -1560,6 +1624,13 @@ static int gp2a_probe(struct i2c_client *client,
 		pr_err("%s input_register_device prox error\n", __func__);
 		goto input_register_prox_device_err;
 	}
+#if defined(CONFIG_SEC_BERLUTI_PROJECT)
+	err = sensors_create_symlink(&data->prox_input_dev->dev.kobj, data->prox_input_dev->name);
+	if (err < 0) {
+		pr_err("%s sensors_create_symlink light error\n", __func__);
+		goto sensors_create_symlink_light_err;
+	}
+#endif
 
 	err = sysfs_create_group(&data->prox_input_dev->dev.kobj,
 				&gp2a_prox_attribute_group);
@@ -1617,17 +1688,29 @@ sensors_register_light_err:
 	sysfs_remove_group(&data->prox_input_dev->dev.kobj,
 			&gp2a_prox_attribute_group);
 sysfs_create_group_prox_err:
+#if defined(CONFIG_SEC_BERLUTI_PROJECT)
+	sensors_remove_symlink(&data->prox_input_dev->dev.kobj,
+			data->prox_input_dev->name);
+sensors_create_symlink_err:
+#endif
 	input_unregister_device(data->prox_input_dev);
 input_register_prox_device_err:
 	input_free_device(data->prox_input_dev);
 input_allocate_prox_device_err:
 	gpio_free(data->gpio);
+#ifndef CONFIG_SEC_BERLUTI_PROJECT
 	gpio_free(data->vled_gpio);
+#endif
 err_setup_irq:
 #endif
 	sysfs_remove_group(&data->light_input_dev->dev.kobj,
 			&gp2a_light_attribute_group);
 sysfs_create_group_light_err:
+#if defined(CONFIG_SEC_BERLUTI_PROJECT)
+	sensors_remove_symlink(&data->light_input_dev->dev.kobj,
+			data->light_input_dev->name);
+sensors_create_symlink_light_err:
+#endif
 	input_unregister_device(data->light_input_dev);
 input_register_device_err:
 	input_free_device(data->light_input_dev);
@@ -1664,7 +1747,6 @@ static void gp2a_shutdown(struct i2c_client *client)
 	input_free_device(data->light_input_dev);
 #ifdef CONFIG_SENSORS_GP2A030A_PROX
 	if (data->prox_enabled) {
-		gp2a_prox_onoff(0, data);
 		disable_irq(data->irq);
 		disable_irq_wake(data->irq);
 		gp2a_prox_onoff(0, data);
@@ -1676,7 +1758,12 @@ static void gp2a_shutdown(struct i2c_client *client)
 	input_unregister_device(data->prox_input_dev);
 	input_free_device(data->prox_input_dev);
 	gpio_free(data->gpio);
+	if (system_rev >= 12) {
+		gpio_free(data->con_gpio);
+	}
+#ifndef CONFIG_SEC_BERLUTI_PROJECT
 	gpio_free(data->vled_gpio);
+#endif
 #endif
 	mutex_destroy(&data->light_mutex);
 	mutex_destroy(&data->data_mutex);

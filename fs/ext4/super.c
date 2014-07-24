@@ -2988,7 +2988,13 @@ void print_block_data(struct super_block *sb, sector_t blocknr
 void print_bh(struct super_block *sb, struct buffer_head *bh
 				, int start, int len)
 {
-	print_block_data(sb, bh->b_blocknr, bh->b_data, start, len);
+	if (bh) {
+		printk(KERN_ERR " print_bh: bh %p, bh->b_size %u, bh->b_data %p\n",
+			(void *) bh, bh->b_size, (void *) bh->b_data);
+		print_block_data(sb, bh->b_blocknr, bh->b_data, start, len);
+	}
+	else
+		printk(KERN_ERR " print_bh: bh is null!\n");
 }
 
 static int ext4_fill_super(struct super_block *sb, void *data, int silent)

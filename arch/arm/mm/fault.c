@@ -357,13 +357,6 @@ int tima_is_pg_protected(unsigned long va)
 {
 	unsigned long  par;
 	unsigned long flags;
-#ifdef CONFIG_MACH_MONDRIAN
-	if (tima_switch_count < 0xdfff) 
-		return 0;
-#else
-	if (tima_switch_count < 0x12000) 
-		return 0;
-#endif
 	/* Translate the page use writable priv.
 	Failing means a read-only page 
 	(tranlation was confirmed by previous step)*/

@@ -23,16 +23,19 @@
 #include <linux/gpio.h>
 #include <linux/err.h>
 #include <linux/regulator/consumer.h>
-#include <linux/pwm.h>
+#include <linux/qpnp/pwm.h>
 #include <linux/clk.h>
 #include <linux/spinlock_types.h>
 #include <linux/kthread.h>
+#include <linux/qpnp/pwm.h>
 #include <asm/system.h>
 #include <asm/mach-types.h>
 #include <mach/hardware.h>
 #include <mach/dma.h>
 
 #include "mdss.h"
+#include "mdss_panel.h"
+#include "mdss_mdp.h"
 #include "mdss_edp.h"
 #include "mdss_debug.h"
 #include <linux/qpnp/pin.h>
@@ -512,12 +515,23 @@ void mdss_edp_set_backlight(struct mdss_panel_data *pdata, u32 bl_level)
 	if (bl_level > bl_max)
 		bl_level = bl_max;
 
+		ret = pwm_config_us(edp_drv->bl_pwm,
+				bl_level * edp_drv->pwm_period / bl_max,
+				edp_drv->pwm_period);
+		if (ret) {
+			pr_err("%s: pwm_config_us() failed err=%d.\n", __func__,
+					ret);
+			return;
+		}
+
 	duty_level = duty_level_table[bl_level];
 
+#if 0
 	if (edp_drv->duty_level == duty_level) {
 		pr_err("%s : same duty level..(%d) do not pwm_config..\n", __func__, duty_level);
 		return;
 	}
+#endif
 
 	llpwm_period = edp_drv->pwm_period;
 	llpwm_period <<=  BIT_SHIFT;
@@ -526,9 +540,9 @@ void mdss_edp_set_backlight(struct mdss_panel_data *pdata, u32 bl_level)
 	do_div(llpwm_period, ll_pwm_resolution);
 	duty_period = (llpwm_period >> BIT_SHIFT); 
 
-	ret = pwm_config(edp_drv->bl_pwm, duty_period, edp_drv->pwm_period);
+	ret = pwm_config_us(edp_drv->bl_pwm, duty_period, edp_drv->pwm_period);
 	if (ret) {
-		pr_err("%s: pwm_config() failed err=%d.\n", __func__, ret);
+		pr_err("%s: pwm_config_us() failed err=%d.\n", __func__, ret);
 		return;
 	}
 
@@ -881,6 +895,12 @@ int mdss_edp_on(struct mdss_panel_data *pdata)
 
 	pr_info("%s:+, cont_splash=%d\n", __func__, edp_drv->cont_splash);
 
+	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON, false);
+
+#if defined(CONFIG_FB_MSM_EDP_SAMSUNG)
+	mutex_lock(&edp_power_state_chagne);
+	INIT_COMPLETION(edp_power_sync);
+#endif
 	if (!edp_drv->cont_splash) { /* vote for clocks */
 		qpnp_pin_config(edp_drv->gpio_panel_pwm, &LCD_PWM_PM_GPIO_WAKE);
 		qpnp_pin_config(edp_drv->gpio_panel_en, &LCD_EN_PM_GPIO_WAKE);
@@ -1001,6 +1021,8 @@ int mdss_edp_off(struct mdss_panel_data *pdata)
 
 	mdss_edp_clk_disable(edp_drv);
 	mdss_edp_unprepare_clocks(edp_drv);
+
+	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
 
 	mdss_edp_aux_ctrl(edp_drv, 0);
 
@@ -1173,6 +1195,9 @@ static int mdss_edp_device_register(struct mdss_edp_drv_pdata *edp_drv)
 		"qcom,mdss-brightness-max-level", &tmp);
 	edp_drv->panel_data.panel_info.brightness_max =
 		(!ret ? tmp : MDSS_MAX_BL_BRIGHTNESS);
+
+	edp_drv->panel_data.panel_info.edp.frame_rate =
+				DEFAULT_FRAME_RATE;/* 60 fps */
 
 	edp_drv->panel_data.event_handler = mdss_edp_event_handler;
 	edp_drv->panel_data.set_backlight = mdss_edp_set_backlight;
@@ -1679,6 +1704,10 @@ static int __devinit mdss_edp_probe(struct platform_device *pdev)
 
 	pr_info("%s:cont_splash=%d\n", __func__, edp_drv->cont_splash);
 
+	/* need mdss clock to receive irq */
+	if (!edp_drv->cont_splash)
+		mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON, false);
+
 	/* only need aux and ahb clock for aux channel */
 	mdss_edp_prepare_aux_clocks(edp_drv);
 	mdss_edp_aux_clk_enable(edp_drv);
@@ -1712,6 +1741,9 @@ static int __devinit mdss_edp_probe(struct platform_device *pdev)
 
 	mdss_edp_aux_clk_disable(edp_drv);
 	mdss_edp_unprepare_aux_clocks(edp_drv);
+
+	if (!edp_drv->cont_splash)
+		mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
 
 	if (edp_drv->cont_splash) { /* vote for clocks */
 		mdss_edp_regulator_on(edp_drv);
@@ -1756,11 +1788,11 @@ probe_err:
 static int __init edp_current_boot_mode(char *mode)
 {
 	/*
-	*	1, 2 is recovery booting
+	*	1 is recovery booting
 	*	0 is normal booting
 	*/
 
-        if ((strncmp(mode, "1", 1) == 0)||(strncmp(mode, "2", 1) == 0))
+	if (strncmp(mode, "1", 1) == 0)
 		recovery_mode = 1;
 	else
 		recovery_mode = 0;
