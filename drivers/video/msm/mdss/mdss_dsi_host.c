@@ -1473,10 +1473,10 @@ int mdss_dsi_cmdlist_commit(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp)
 	if (IS_ERR_VALUE(rc)) {
 		pr_err("IOMMU attach failed\n");
 		mutex_unlock(&ctrl->cmd_mutex);
-		return;
+		return rc;
 	}
 	if (req->flags & CMD_REQ_RX)
-		ret = mdss_dsi_cmdlist_rx(ctrl, req);
+		rc = mdss_dsi_cmdlist_rx(ctrl, req);
 	else if (req->flags & CMD_REQ_SINGLE_TX)
 		mdss_dsi_cmds_single_tx(ctrl,req->cmds,req->cmds_cnt);
 	else
@@ -1500,7 +1500,7 @@ need_lock:
 #endif
 	pr_debug("%s : -- \n",__func__);
 
-	return ret;
+	return rc;
 }
 
 static void dsi_send_events(struct mdss_dsi_ctrl_pdata *ctrl, u32 events)
