@@ -9,7 +9,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#define DEBUG
+
 #include <linux/battery/sec_fuelgauge.h>
 #include <linux/battery/sec_charger.h>
 #include <linux/battery/sec_battery.h>
@@ -153,7 +153,7 @@ static int sec_fg_get_property(struct power_supply *psy,
 					__func__, val->intval);
 			}
 		} else {
-			dev_err(&fuelgauge->client->dev, "%s: bat irq gpio is invalid (%d)\n",
+			WARN_ONCE(1, "%s: bat irq gpio is invalid (%d)\n",
 				__func__, fuelgauge->pdata->bat_irq_gpio);
 			val->intval = 1;
 		}
