@@ -3043,4 +3043,18 @@ config KRAIT_REGULATOR
 	 line from the PMIC. This supply line is powered by multiple
 	 regulators running in ganged mode inside the PMIC. Enable
 	 this option to support such configurations.
+
+config MACH_MONDRIAN
+	bool "Support for Samsung mondrian devices"
+	select MACH_TABPRO
+	help
+	  Support for common elements between mondrianwifi, mondrian3g
+	  and mondrianlte.
+
+config MACH_TABPRO
+	bool "Support for Samsung tabpro family of devices"
+	help
+	  Support for common elements between mondrianwifi, mondrian3g,
+	  mondrianlte, picassolte and viennalte.
+
 endif
