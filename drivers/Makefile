@@ -146,5 +146,6 @@ obj-$(CONFIG_CORESIGHT)		+= coresight/
 obj-$(CONFIG_BIF)		+= bif/
 obj-$(CONFIG_SENSORS)		+= sensors/
 
+obj-$(CONFIG_SEC_FPGA)          += barcode_emul/
 obj-$(CONFIG_BATTERY_SAMSUNG)   += battery/
 

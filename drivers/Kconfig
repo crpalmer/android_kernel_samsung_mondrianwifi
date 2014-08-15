@@ -154,6 +154,7 @@ source "drivers/bif/Kconfig"
 
 source "drivers/sensors/Kconfig"
 
+source "drivers/barcode_emul/Kconfig"
 source "drivers/battery/Kconfig"
 
 endmenu
