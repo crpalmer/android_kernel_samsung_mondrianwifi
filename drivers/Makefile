@@ -148,4 +148,4 @@ obj-$(CONFIG_SENSORS)		+= sensors/
 
 obj-$(CONFIG_SEC_FPGA)          += barcode_emul/
 obj-$(CONFIG_BATTERY_SAMSUNG)   += battery/
-
+obj-$(CONFIG_MSM_VIBRATOR)      += motor/
