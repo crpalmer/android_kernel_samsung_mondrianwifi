@@ -424,3 +424,6 @@ obj-$(CONFIG_WALL_CLK) += wallclk.o
 obj-$(CONFIG_WALL_CLK_SYSFS) += wallclk_sysfs.o
 obj-$(CONFIG_ARCH_RANDOM) += early_random.o
 obj-$(CONFIG_PERFMAP) += perfmap.o
+
+obj-$(CONFIG_MFD_MAX77888) += sec-switch.o
+obj-$(CONFIG_REGULATOR_MAX77888) += sec-regulator-max77888.o
