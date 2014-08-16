@@ -851,6 +851,7 @@ struct input_keymap_entry {
 #define SW_HPHR_OVERCURRENT    0x0f  /* set = over current on right hph */
 #define SW_UNSUPPORT_INSERT	0x10  /* set = unsupported device inserted */
 #define SW_MICROPHONE2_INSERT   0x11  /* set = inserted */
+#define SW_FLIP			0x15  /* set = flip cover */
 #define SW_MAX			0x20
 #define SW_CNT			(SW_MAX+1)
 
