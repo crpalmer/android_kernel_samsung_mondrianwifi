@@ -427,3 +427,4 @@ obj-$(CONFIG_PERFMAP) += perfmap.o
 
 obj-$(CONFIG_MFD_MAX77888) += sec-switch.o
 obj-$(CONFIG_REGULATOR_MAX77888) += sec-regulator-max77888.o
+obj-$(CONFIG_SEC_THERMISTOR) += sec_thermistor.o msm8974-thermistor.o

@@ -3073,4 +3073,10 @@ config MACH_TABPRO
 	  Support for common elements between mondrianwifi, mondrian3g,
 	  mondrianlte, picassolte and viennalte.
 
+config SEC_THERMISTOR
+	bool "Use external thermistor near AP for checking temprature"
+	default n
+	  help
+	  Use thermistor driver for checking temperature near AP chip.
+
 endif
