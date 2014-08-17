@@ -13,6 +13,7 @@
 /include/ "msm8974-leds.dtsi"
 /include/ "msm8974-camera-sensor-skate.dtsi"
 /include/ "msm8974-sii8240_mhl-mondrian-r00.dtsi"
+/include/ "msm8974-sec-tabpro-common.dtsi"
 
 / {
 	aliases {
