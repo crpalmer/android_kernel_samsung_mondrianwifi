@@ -10,13 +10,6 @@
  * GNU General Public License for more details.
  */
 
-/include/ "dsi-panel-orise-720p-video.dtsi"
-/include/ "dsi-panel-toshiba-720p-video.dtsi"
-/include/ "dsi-panel-sharp-qhd-video.dtsi"
-/include/ "dsi-panel-generic-720p-cmd.dtsi"
-/include/ "dsi-panel-jdi-1080p-video.dtsi"
-/include/ "dsi-panel-jdi-dualmipi0-video.dtsi"
-/include/ "dsi-panel-jdi-dualmipi1-video.dtsi"
-/include/ "dsi-panel-jdi-dualmipi0-cmd.dtsi"
-/include/ "dsi-panel-jdi-dualmipi1-cmd.dtsi"
-/include/ "dsi_panel_samsung_2560p_video_R63319.dtsi"
+/* Do not hard-cdoe a list of panels, make it the responsibility of the
+ * device specific board files!
+ */
