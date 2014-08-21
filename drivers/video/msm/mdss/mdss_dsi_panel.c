@@ -191,6 +191,12 @@ disp_en_gpio_err:
 	return rc;
 }
 
+#ifdef CONFIG_MACH_TABPRO
+#define GPIOS_MAY_BE_ENABLED(pinfo) (pinfo->pdest == DISPLAY_1)
+#else
+#define GPIOS_MAY_BE_ENABLED(pinfo) true
+#endif
+
 int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
@@ -220,12 +226,18 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 	pinfo = &(ctrl_pdata->panel_data.panel_info);
 
 	if (enable) {
-		rc = mdss_dsi_request_gpios(ctrl_pdata);
-		if (rc) {
-			pr_err("gpio request failed\n");
-			return rc;
+		if (GPIOS_MAY_BE_ENABLED(pinfo)) {
+			rc = mdss_dsi_request_gpios(ctrl_pdata);
+			if (rc) {
+				pr_err("gpio request failed\n");
+				return rc;
+			}
 		}
+#ifdef CONFIG_MACH_TABPRO
+		if (GPIOS_MAY_BE_ENABLED(pinfo)) {
+#else
 		if (!pinfo->panel_power_on) {
+#endif
 			if (gpio_is_valid(ctrl_pdata->disp_en_gpio))
 				gpio_set_value((ctrl_pdata->disp_en_gpio), 1);
 
@@ -249,7 +261,7 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			ctrl_pdata->ctrl_state &= ~CTRL_STATE_PANEL_INIT;
 			pr_debug("%s: Reset panel done\n", __func__);
 		}
-	} else {
+	} else if (GPIOS_MAY_BE_ENABLED(pinfo)) {
 		if (gpio_is_valid(ctrl_pdata->disp_en_gpio)) {
 			gpio_set_value((ctrl_pdata->disp_en_gpio), 0);
 			gpio_free(ctrl_pdata->disp_en_gpio);
