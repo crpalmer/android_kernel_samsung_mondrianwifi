@@ -1755,8 +1755,8 @@ void max77888_muic_usb_cb(u8 usb_mode)
 			pr_info("USB Host HNOTIFY_LANHUB_ON");
 			sec_otg_notify(HNOTIFY_LANHUB_ON);
 		}
-	}
 #endif
+	}
 }
 #if defined (CONFIG_VIDEO_MHL_V2) || defined (CONFIG_VIDEO_MHL_SII8246)
 static BLOCKING_NOTIFIER_HEAD(acc_mhl_notifier);
