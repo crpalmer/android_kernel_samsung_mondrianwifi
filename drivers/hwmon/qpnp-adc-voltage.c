@@ -120,6 +120,8 @@ struct qpnp_vadc_chip {
 
 LIST_HEAD(qpnp_vadc_device_list);
 
+struct qpnp_vadc_chip *qpnp_vadc;
+
 static struct qpnp_vadc_scale_fn vadc_scale_fn[] = {
 	[SCALE_DEFAULT] = {qpnp_adc_scale_default},
 	[SCALE_BATT_THERM] = {qpnp_adc_scale_batt_therm},
@@ -1196,6 +1198,9 @@ int32_t qpnp_vadc_read(struct qpnp_vadc_chip *vadc,
 	struct qpnp_vadc_result die_temp_result;
 	int rc = 0;
 
+	if (vadc == NULL)
+		vadc = qpnp_vadc;
+
 	if (channel == VBAT_SNS) {
 		rc = qpnp_vadc_conv_seq_request(vadc, ADC_SEQ_NONE,
 				channel, result);
@@ -1433,6 +1438,8 @@ static int __devinit qpnp_vadc_probe(struct spmi_device *spmi)
 		return rc;
 	}
 	mutex_init(&vadc->adc->adc_lock);
+
+	qpnp_vadc = vadc;
 
 	rc = qpnp_vadc_init_hwmon(vadc, spmi);
 	if (rc) {
