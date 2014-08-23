@@ -470,6 +470,7 @@ struct input_keymap_entry {
 #define KEY_RFKILL		247	/* Key that controls all radios */
 
 #define KEY_MICMUTE		248	/* Mute / unmute the microphone */
+#define KEY_RECENT		254	/* Samsung actionmouse? */
 
 /* Code 255 is reserved for special needs of AT keyboard driver */
 
@@ -526,6 +527,7 @@ struct input_keymap_entry {
 #define BTN_MODE		0x13c
 #define BTN_THUMBL		0x13d
 #define BTN_THUMBR		0x13e
+#define BTN_GAME		0x13f	/* Add game button for samsung bluetooth keypad */
 
 #define BTN_DIGI		0x140
 #define BTN_TOOL_PEN		0x140
