@@ -93,7 +93,7 @@
 	soc: soc { };
 };
 
-/include/ "msm8974-camera.dtsi"
+/include/ "msm8974-sec-camera.dtsi"
 /include/ "msm8974-coresight.dtsi"
 /include/ "msm-gdsc.dtsi"
 /include/ "msm8974-ion.dtsi"

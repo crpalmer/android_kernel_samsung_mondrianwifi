@@ -1,3 +1,7 @@
+#ifdef CONFIG_MACH_TABPRO
+#include <media/msmb_isp_tabpro.h>
+#else
+
 /* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -436,3 +440,4 @@ struct msm_isp_event_data {
 	_IOWR('V', BASE_VIDIOC_PRIVATE+13, struct msm_vfe_axi_stream_update_cmd)
 
 #endif /* __MSMB_ISP__ */
+#endif /* CONFIG_MACH_TABPRO */

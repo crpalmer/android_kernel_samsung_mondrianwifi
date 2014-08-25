@@ -5,6 +5,24 @@
 #include <linux/types.h>
 #include <linux/ioctl.h>
 
+#ifdef CONFIG_MACH_TABPRO
+
+#define MSM_CAMERA_DUMMY_NAME   "msm_cam_dummy"
+
+#define MSM_CAM_V4L2_IOCTL_NOTIFY \
+	_IOW('V', BASE_VIDIOC_PRIVATE + 30, struct v4l2_event)
+
+#define MSM_CAM_V4L2_IOCTL_NOTIFY_ERROR \
+	_IOW('V', BASE_VIDIOC_PRIVATE + 31, struct v4l2_event)
+
+#define MSM_CAM_V4L2_IOCTL_CMD_ACK \
+	_IOW('V', BASE_VIDIOC_PRIVATE + 32, struct v4l2_event)
+
+#define MSM_CAM_V4L2_IOCTL_NOTIFY_MODULE_STATUS \
+	_IOW('V', BASE_VIDIOC_PRIVATE + 33, struct v4l2_event)
+
+#else
+
 #define MSM_CAM_V4L2_IOCTL_NOTIFY \
 	_IOW('V', BASE_VIDIOC_PRIVATE + 30, struct v4l2_event)
 
@@ -16,6 +34,8 @@
 
 #define MSM_CAM_V4L2_IOCTL_NOTIFY_ERROR \
 	_IOW('V', BASE_VIDIOC_PRIVATE + 33, struct v4l2_event)
+
+#endif
 
 #define QCAMERA_DEVICE_GROUP_ID	1
 #define QCAMERA_VNODE_GROUP_ID	2

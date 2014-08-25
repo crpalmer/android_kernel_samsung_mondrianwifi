@@ -1,0 +1,27 @@
+/* Copyright (c) 2014, The CyanogenMod Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/* The purpose of this file is to replace modifications that Samsung made
+ * directly to board file nodes that are shared across devices.
+ */
+
+&soc {
+	qcom,cam_dummy {
+		compatible = "qcom,cam_dummy";
+	};
+
+	vfe_fda10000 {
+		reg = <0xfda10000 0x1000 0xfda40000 0x200>;
+		reg-names = "vfe", "vfe_vbif";
+		foo = "bar";
+	};
+};
