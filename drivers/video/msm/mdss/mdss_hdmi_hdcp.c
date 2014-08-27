@@ -215,12 +215,14 @@ static int hdmi_hdcp_authentication_part1(struct hdmi_hdcp_ctrl *hdcp_ctrl)
 		goto error;
 	}
 
+#if !defined (CONFIG_VIDEO_MHL_V2) || defined (CONFIG_VIDEO_MHL_SII8246)
 	if (HDCP_STATE_AUTHENTICATING != hdcp_ctrl->hdcp_state) {
 		DEV_DBG("%s: %s: invalid state. returning\n", __func__,
 			HDCP_STATE_NAME);
 		rc = -EINVAL;
 		goto error;
 	}
+#endif
 
 	bksv = hdcp_ctrl->current_tp.bksv;
 
@@ -548,12 +550,75 @@ error:
 			HDCP_STATE_NAME);
 	} else {
 		/* Enable HDCP Encryption */
-		DSS_REG_W(io, HDMI_HDCP_CTRL, BIT(0) | BIT(8));
 		DEV_INFO("%s: %s: Authentication Part I successful\n",
 			__func__, HDCP_STATE_NAME);
+#ifdef CONFIG_VIDEO_MHL_V2
+		DSS_REG_W(io, HDMI_HDCP_CTRL, BIT(0));
+
+		/* if REPEATER (Bit 6), perform Part2 Authentication */
+		if (!(bcaps & BIT(6))) {
+			DEV_INFO("%s: %s: auth part II skipped, no repeater\n",
+				__func__, HDCP_STATE_NAME);
+		} else {
+			/* Wait until READY bit is set in BCAPS */
+			timeout_count = 50;
+			while (!(bcaps & BIT(5)) && timeout_count) {
+				extern int hdmi_hpd_status(void);
+
+				msleep(100);
+				timeout_count--;
+				if (hdmi_hpd_status() == false) {
+					DEV_INFO("%s: hdmi_hpd_status == false\n", __func__);
+					continue;
+				}
+				/* Read BCAPS at offset 0x40 */
+				memset(&ddc_data, 0, sizeof(ddc_data));
+				ddc_data.dev_addr = 0x74;
+				ddc_data.offset = 0x40;
+				ddc_data.data_buf = &bcaps;
+				ddc_data.data_len = 1;
+				ddc_data.request_len = 1;
+				ddc_data.retry = 5;
+				ddc_data.what = "Bcaps";
+				ddc_data.no_align = false;
+				rc = hdmi_ddc_read(hdcp_ctrl->init_data.ddc_ctrl, &ddc_data);
+				if (rc) {
+					DEV_ERR("%s: %s: BCAPS read failed\n", __func__,
+						HDCP_STATE_NAME);
+					break;
+				}
+			}
+		}
+
+		if (timeout_count == 0)
+			rc = -EINVAL;
+#else
+		DSS_REG_W(io, HDMI_HDCP_CTRL, BIT(0) | BIT(8));
+#endif
 	}
 	return rc;
 } /* hdmi_hdcp_authentication_part1 */
+
+#ifdef CONFIG_VIDEO_MHL_V2
+
+static struct hdmi_hdcp_ctrl *hdcp_ctrl_global;
+
+int hdmi_hdcp_authentication_part1_global_start(void)
+{
+	if (hdcp_ctrl_global == NULL)
+		return -EINVAL;
+
+	hdcp_ctrl_global->hdcp_state = HDCP_STATE_AUTHENTICATING;
+	return hdmi_hdcp_authentication_part1(hdcp_ctrl_global);
+}
+
+void hdmi_hdcp_authentication_part1_global_authenticated(void)
+{
+	if (hdcp_ctrl_global != NULL)
+		hdcp_ctrl_global->hdcp_state = HDCP_STATE_AUTHENTICATED;
+}
+
+#endif
 
 #define READ_WRITE_V_H(off, name, reg) \
 do { \
@@ -1393,6 +1458,10 @@ void *hdmi_hdcp_init(struct hdmi_hdcp_init_data *init_data)
 	init_completion(&hdcp_ctrl->r0_checked);
 	DEV_DBG("%s: HDCP module initialized. HDCP_STATE=%s", __func__,
 		HDCP_STATE_NAME);
+
+#ifdef CONFIG_VIDEO_MHL_V2
+	hdcp_ctrl_global = hdcp_ctrl;
+#endif
 
 error:
 	return (void *)hdcp_ctrl;
