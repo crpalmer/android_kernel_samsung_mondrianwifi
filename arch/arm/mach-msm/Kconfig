@@ -3047,9 +3047,25 @@ config KRAIT_REGULATOR
 config MACH_MONDRIAN
 	bool "Support for Samsung mondrian devices"
 	select MACH_TABPRO
+	select MACH_MONDRIAN_WIFI
+	select MACH_MONDRIANWIFI_USA
+	select MACH_MONDRIAN_LTE
+	select SEC_MONDRIAN_PROJECT
 	help
 	  Support for common elements between mondrianwifi, mondrian3g
 	  and mondrianlte.
+
+config MACH_MONDRIAN_WIFI
+	bool "Samsung uses a lot of aliases"
+
+config MACH_MONDRIANWIFI_USA
+	bool "Samsung uses a lot of aliases"
+
+config MACH_MONDRIAN_LTE
+	bool "Samsung uses a lot of aliases"
+
+config SEC_MONDRIAN_PROJECT
+	bool "Samsung uses a lot of aliases"
 
 config MACH_TABPRO
 	bool "Support for Samsung tabpro family of devices"
