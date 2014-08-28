@@ -276,6 +276,8 @@ obj-$(CONFIG_ARCH_APQ8084) += clock-8084.o
 obj-$(CONFIG_ARCH_MSM8974) += board-8974.o
 ifdef CONFIG_MACH_MONDRIAN
 obj-$(CONFIG_ARCH_MSM8974) += board-8974-sec-mondrian-gpiomux.o
+else ifdef CONFIG_MACH_PICASSOLTE
+obj-$(CONFIG_ARCH_MSM8974) += board-8974-sec-picasso-gpiomux.o
 else
 obj-$(CONFIG_ARCH_MSM8974) += board-8974-gpiomux.o
 endif
@@ -426,5 +428,7 @@ obj-$(CONFIG_ARCH_RANDOM) += early_random.o
 obj-$(CONFIG_PERFMAP) += perfmap.o
 
 obj-$(CONFIG_MFD_MAX77888) += sec-switch.o
+obj-$(CONFIG_USB_SWITCH_FSA9485) += sec-switch.o
 obj-$(CONFIG_REGULATOR_MAX77888) += sec-regulator-max77888.o
 obj-$(CONFIG_SEC_THERMISTOR) += sec_thermistor.o msm8974-thermistor.o
+obj-$(CONFIG_BCM4339) += board-8974-wifi.o board-8974-bt.o

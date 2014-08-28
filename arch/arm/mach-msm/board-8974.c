@@ -223,6 +223,10 @@ void __init msm8974_init(void)
 	board_dt_populate(adata);
 	msm8974_add_drivers();
 	platform_add_devices(common_devices, ARRAY_SIZE(common_devices));
+
+#if defined(CONFIG_BT_BCM4335) || defined(CONFIG_BT_BCM4339)
+	msm8974_bt_init();
+#endif
 }
 
 void __init msm8974_init_very_early(void)

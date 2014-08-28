@@ -3067,6 +3067,20 @@ config MACH_MONDRIAN_LTE
 config SEC_MONDRIAN_PROJECT
 	bool "Samsung uses a lot of aliases"
 
+config MACH_PICASSO
+	bool "Support for Samsung picassolte devices"
+	select MACH_TABPRO
+	select MACH_PICASSOLTE
+	select MACH_PICASSO_LTE
+
+config MACH_PICASSOLTE
+	bool "Support for Samsung picassolte devices (synonym of MACH_PICASSO)"
+	select MACH_TABPRO
+
+config MACH_PICASSO_LTE
+	bool "Support for Samsung picassolte devices (synonym of MACH_PICASSO)"
+	select MACH_TABPRO
+
 config MACH_TABPRO
 	bool "Support for Samsung tabpro family of devices"
 	help
