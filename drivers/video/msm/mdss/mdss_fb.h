@@ -259,4 +259,10 @@ struct sync_fence *mdss_fb_sync_get_fence(struct sw_sync_timeline *timeline,
 int mdss_fb_register_mdp_instance(struct msm_mdp_interface *mdp);
 int mdss_fb_dcm(struct msm_fb_data_type *mfd, int req_state);
 int mdss_fb_suspres_panel(struct device *dev, void *data);
+
+#ifdef CONFIG_FB_MSM_CAMERA_CSC
+extern u8 csc_update;
+extern u8 pre_csc_update;
+#endif
+
 #endif /* MDSS_FB_H */
