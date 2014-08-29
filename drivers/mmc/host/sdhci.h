@@ -144,7 +144,6 @@
 #define  SDHCI_INT_CMD_MASK	(SDHCI_INT_RESPONSE | SDHCI_INT_TIMEOUT | \
 		SDHCI_INT_CRC | SDHCI_INT_END_BIT | SDHCI_INT_INDEX | \
 				 SDHCI_INT_AUTO_CMD_ERR)
-
 #define  SDHCI_INT_DATA_MASK	(SDHCI_INT_DATA_END | SDHCI_INT_DMA_END | \
 		SDHCI_INT_DATA_AVAIL | SDHCI_INT_SPACE_AVAIL | \
 		SDHCI_INT_DATA_TIMEOUT | SDHCI_INT_DATA_CRC | \
@@ -297,6 +296,7 @@ struct sdhci_ops {
 	unsigned int	(*get_max_segments)(void);
 	void	(*platform_bus_voting)(struct sdhci_host *host, u32 enable);
 	void    (*disable_data_xfer)(struct sdhci_host *host);
+	void    (*dump_vendor_regs)(struct sdhci_host *host);
 	int	(*enable_controller_clock)(struct sdhci_host *host);
 };
 
