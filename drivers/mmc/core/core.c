@@ -3113,23 +3113,11 @@ EXPORT_SYMBOL_GPL(mmc_exit_clk_scaling);
 
 static int mmc_rescan_try_freq(struct mmc_host *host, unsigned freq)
 {
-#if defined(CONFIG_SEC_K_PROJECT) || defined(CONFIG_SEC_KACTIVE_PROJECT) || defined(CONFIG_MACH_VIENNAATT)
-	struct sdhci_host *sd_host = NULL;
-#endif
 	host->f_init = freq;
 
 #ifdef CONFIG_MMC_DEBUG
 	pr_info("%s: %s: trying to init card at %u Hz\n",
 		mmc_hostname(host), __func__, host->f_init);
-#endif
-#if defined(CONFIG_SEC_K_PROJECT) || defined(CONFIG_SEC_KACTIVE_PROJECT) || defined(CONFIG_MACH_VIENNAATT)
-	sd_host = (struct sdhci_host *)mmc_priv(host);
-	if (sd_host != NULL) {
-		if (sd_host->flags & SDHCI_DEVICE_DEAD) {
-			pr_err("%s: host(%s), SDHCI_DEVICE_DEAD so return! \n", __func__, mmc_hostname(host));
-			return -EIO;
-		}
-	}
 #endif
 	mmc_power_up(host);
 
@@ -3313,19 +3301,6 @@ void mmc_rescan(struct work_struct *work)
 void mmc_start_host(struct mmc_host *host)
 {
 	mmc_power_off(host);
-#if defined(CONFIG_MACH_HLTESKT)||defined(CONFIG_MACH_HLTEKTT)||defined(CONFIG_MACH_HLTELGT)\
-	|| defined(CONFIG_MACH_FLTESKT) || defined(CONFIG_MACH_LT03SKT) || defined(CONFIG_MACH_LT03KTT) || defined(CONFIG_MACH_LT03LGT)\
-	|| defined(CONFIG_MACH_HLTEDCM) || defined(CONFIG_MACH_HLTEKDI) \
-	|| defined(CONFIG_MACH_JS01LTEDCM) || defined(CONFIG_MACH_JS01LTESBM) \
-	|| defined(CONFIG_MACH_H3GDUOS_CTC) || defined(CONFIG_MACH_H3GDUOS_CU)\
-	|| defined(CONFIG_MACH_FRESCOLTESKT)||defined(CONFIG_MACH_FRESCOLTEKTT)||defined(CONFIG_MACH_FRESCOLTELGT)
-	if ((fw_dl_complete!=true) && (!strcmp(mmc_hostname(host),"mmc2"))){
-		pr_info("%s: %s: %d, Call mmc_rescan after 2sec\n",	mmc_hostname(host), __func__,fw_dl_complete);
-		mmc_detect_change(host, msecs_to_jiffies(2000));
-	}
-	else
-#endif
-
 	mmc_detect_change(host, 0);
 }
 
