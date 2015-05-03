@@ -23,6 +23,8 @@ source "fs/ext2/Kconfig"
 source "fs/ext3/Kconfig"
 source "fs/ext4/Kconfig"
 
+source "fs/f2fs/Kconfig"
+
 config FS_XIP
 # execute in place
 	bool
